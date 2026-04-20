@@ -7,11 +7,9 @@ checksum derivation) can be verified offline.
 from __future__ import annotations
 
 import asyncio
-import importlib
 import sys
 import types
 from typing import Any, Dict
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -196,7 +194,7 @@ def test_build_provider_returns_mock_when_real_disabled(monkeypatch) -> None:
 
 
 def test_wallet_address_mismatch_is_rejected(monkeypatch, arc_modules) -> None:
-    cfg = _make_config(monkeypatch)
+    _make_config(monkeypatch)
     monkeypatch.setenv("ARC_WALLET_ADDRESS", "0x0000000000000000000000000000000000000001")
     cfg2 = AppConfig()
     with pytest.raises(arc_chain_mod.ArcChainError):

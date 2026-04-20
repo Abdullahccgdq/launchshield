@@ -9,7 +9,6 @@ import asyncio
 import re
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Protocol, Tuple
-from urllib.parse import urlparse
 
 import httpx
 
@@ -84,9 +83,7 @@ def _extension(path: str) -> str:
 
 
 def is_allowed_path(path: str) -> bool:
-    if _extension(path) not in ALLOWED_EXTENSIONS:
-        return False
-    return True
+    return _extension(path) in ALLOWED_EXTENSIONS
 
 
 def priority_sort(paths: Iterable[str]) -> List[str]:

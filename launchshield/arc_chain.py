@@ -154,6 +154,13 @@ class ArcTestnetPaymentProvider:
         gas_used = getattr(receipt, "gasUsed", None)
         explorer_url = f"{self._explorer}/tx/{tx_hash_hex}"
 
+        parts = [f"arcscan://{self._chain_id}/tx/{tx_hash_hex}"]
+        if block_number is not None:
+            parts.append(f"block={block_number}")
+        if gas_used is not None:
+            parts.append(f"gas={gas_used}")
+        console_reference = " | ".join(parts) if block_number is not None else None
+
         return PaymentReceipt(
             provider="arc-testnet",
             amount_usdc=round(amount_to_send, 6),
@@ -162,11 +169,7 @@ class ArcTestnetPaymentProvider:
             explorer_url=explorer_url,
             submitted_at=submitted_at,
             confirmed_at=confirmed_at,
-            console_reference=(
-                f"arcscan://{self._chain_id}/tx/{tx_hash_hex}"
-                if block_number is not None
-                else None
-            ),
+            console_reference=console_reference,
         )
 
     # ---------- internal helpers (run in a thread because web3.py is sync) ----------

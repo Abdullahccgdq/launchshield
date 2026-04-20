@@ -25,7 +25,6 @@ from .models import (
     FindingSource,
     InvocationStatus,
     PaymentReceipt,
-    ProfitabilitySnapshot,
     RunMode,
     ScanScope,
     RunStatus,
@@ -34,8 +33,8 @@ from .models import (
 )
 from .presets import TierConfig, tier_for
 from .pricing import price_for
-from .repo_scan import FileMatch, scan_file
-from .repo_source import RepoFile, RepoSource, priority_sort
+from .repo_scan import scan_file
+from .repo_source import RepoSource, priority_sort
 from .site_probes import ProbePlan, build_probe_plan, execute_probe
 from .storage import RunRegistry, get_registry
 
@@ -500,12 +499,14 @@ class Orchestrator:
                 language = "python"
                 snippet = target_finding.evidence if target_finding else "synthetic snippet"
                 analysis = await self._retry_once(
-                    lambda: llm_provider.deep_analysis(
-                        llm_mod.DeepAnalysisInput(
-                            snippet=snippet,
-                            rule=rule,
-                            language=language,
-                            evidence=target_finding.evidence if target_finding else "synthetic",
+                    lambda snippet=snippet, rule=rule, language=language, tf=target_finding: (
+                        llm_provider.deep_analysis(
+                            llm_mod.DeepAnalysisInput(
+                                snippet=snippet,
+                                rule=rule,
+                                language=language,
+                                evidence=tf.evidence if tf else "synthetic",
+                            )
                         )
                     )
                 )
@@ -559,7 +560,9 @@ class Orchestrator:
                 subject = target_finding.title if target_finding else "generic"
                 category = target_finding.source.value if target_finding else "file_scan"
                 verification = await self._retry_once(
-                    lambda: aisa_provider.verify(subject, category)
+                    lambda subject=subject, category=category: aisa_provider.verify(
+                        subject, category
+                    )
                 )
             except Exception as exc:
                 await self._fail_invocation(run, invocation, f"aisa error: {exc!r}")
@@ -614,23 +617,28 @@ class Orchestrator:
             try:
                 rule = _rule_from_finding(target_finding)
                 language = "python"
+                snippet = target_finding.evidence if target_finding else ""
                 analysis = await self._retry_once(
-                    lambda: llm_provider.deep_analysis(
-                        llm_mod.DeepAnalysisInput(
-                            snippet=target_finding.evidence if target_finding else "",
-                            rule=rule,
-                            language=language,
-                            evidence=target_finding.evidence if target_finding else "",
+                    lambda snippet=snippet, rule=rule, language=language: (
+                        llm_provider.deep_analysis(
+                            llm_mod.DeepAnalysisInput(
+                                snippet=snippet,
+                                rule=rule,
+                                language=language,
+                                evidence=snippet,
+                            )
                         )
                     )
                 )
                 suggestion = await self._retry_once(
-                    lambda: llm_provider.fix_suggestion(
-                        llm_mod.FixSuggestionInput(
-                            snippet=target_finding.evidence if target_finding else "",
-                            rule=rule,
-                            language=language,
-                            analysis=analysis,
+                    lambda snippet=snippet, rule=rule, language=language, analysis=analysis: (
+                        llm_provider.fix_suggestion(
+                            llm_mod.FixSuggestionInput(
+                                snippet=snippet,
+                                rule=rule,
+                                language=language,
+                                analysis=analysis,
+                            )
                         )
                     )
                 )

@@ -91,8 +91,11 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=400, detail="repo_url and target_url are required")
             try:
                 parse_github_url(payload.repo_url)
-            except ValueError:
-                raise HTTPException(status_code=400, detail="repo_url must be a public GitHub URL")
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=400,
+                    detail="repo_url must be a public GitHub URL",
+                ) from exc
             if not (payload.target_url.startswith("http://") or payload.target_url.startswith("https://")):
                 raise HTTPException(status_code=400, detail="target_url must be http:// or https://")
             try:

@@ -6,11 +6,10 @@ from launchshield.dep_check import (
     lookup_vuln,
     parse_manifests,
     parse_package_json,
-    parse_pyproject_toml,
     parse_requirements_txt,
 )
 from launchshield.repo_scan import scan_file
-from launchshield.repo_source import MOCK_MANIFESTS, RepoFile, is_allowed_path
+from launchshield.repo_source import MOCK_MANIFESTS, is_allowed_path
 
 
 def test_file_scanner_detects_common_issues() -> None:

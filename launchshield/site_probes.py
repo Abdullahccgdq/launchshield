@@ -137,7 +137,7 @@ def sensitive_path_probe(path: str, status_code: int, base_url: str) -> Optional
 
 def inline_script_probe(snapshot: PageSnapshot) -> List[ProbeFinding]:
     findings: List[ProbeFinding] = []
-    for idx, body in enumerate(snapshot.inline_scripts[:3]):
+    for idx in range(len(snapshot.inline_scripts[:3])):
         finding = inline_script_probe_at(snapshot, idx)
         if finding:
             findings.append(finding)
